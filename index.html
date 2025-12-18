@@ -8,25 +8,34 @@
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
       "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
-      background: linear-gradient(180deg,#fff5f8 0%,#fff 60%);
+      /* 深背景 */
+      background: linear-gradient(180deg,#ffebf2 0%,#ffd6e8 60%);
       margin:0; padding:20px;
     }
     .container { max-width:700px; margin:0 auto; }
     h1 { text-align:center; margin-bottom:20px; }
-    .grid { display:grid; grid-template-columns:repeat(5,1fr); gap:10px; }
+    .grid { display:grid; grid-template-columns:repeat(5,1fr); gap:12px; }
     .cell {
       background:#fff;
       border-radius:14px;
-      padding:10px;
-      min-height:150px;
+      padding:12px;       /* 增大 padding */
+      min-height:180px;   /* 增高格子 */
       display:flex;
       flex-direction:column;
+      justify-content:space-between;
     }
     .cell.done { background:#ffd6e8; }
-    .question { font-size:14px; margin-bottom:8px; }
-    .name-input { width:100%; padding:6px; border-radius:6px; border:1px solid #ccc; flex-shrink:0; }
+    .question { font-size:14px; margin-bottom:10px; }
+    .name-input { 
+      width:100%; 
+      padding:8px;       /* 输入框变大 */
+      font-size:16px;    /* 字体更大 */
+      border-radius:6px; 
+      border:1px solid #ccc; 
+      flex-shrink:0;
+    }
     #downloadImage {
-      padding:10px 20px;
+      padding:12px 24px;
       font-size:16px;
       border-radius:20px;
       border:none;
@@ -103,9 +112,9 @@
     document.getElementById("downloadImage").onclick = async ()=>{
       const container = document.getElementById("container");
       html2canvas(container, {
-        scale:1,       // scale 调小，避免微信截断
+        scale:2,       // 放大 scale，生成更清晰完整图片
         useCORS:true,
-        scrollY:-window.scrollY // 避免截取滚动条
+        scrollY:-window.scrollY
       }).then(canvas=>{
         const imgData = canvas.toDataURL("image/png");
         const link = document.createElement("a");
