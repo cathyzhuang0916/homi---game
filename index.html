@@ -9,47 +9,45 @@
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
       "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
       background: linear-gradient(180deg,#fff5f8 0%,#fff 60%);
-      margin:0;
-      padding:20px;
+      margin:0; padding:20px;
     }
-    .container { max-width:900px; margin:0 auto; position:relative; z-index:2; }
-    .logo-wrap { text-align:center; margin-bottom:10px; }
-    .logo-wrap img { height:64px; }
-    h1 { text-align:center; margin:10px 0 20px; }
-    .instructions { background:#fff; padding:16px; border-radius:14px; margin-bottom:20px; box-shadow:0 6px 16px rgba(0,0,0,0.06); font-size:14px; }
+    .container { max-width:700px; margin:0 auto; }
+    h1 { text-align:center; margin-bottom:20px; }
     .grid { display:grid; grid-template-columns:repeat(5,1fr); gap:10px; }
-    .cell { background:#fff; border-radius:14px; padding:10px; min-height:120px; box-shadow:0 4px 10px rgba(0,0,0,0.05); display:flex; flex-direction:column; justify-content:space-between; transition:all 0.2s ease; }
+    .cell {
+      background:#fff;
+      border-radius:14px;
+      padding:10px;
+      min-height:150px;
+      display:flex;
+      flex-direction:column;
+    }
     .cell.done { background:#ffd6e8; }
     .question { font-size:14px; margin-bottom:8px; }
-    .name-input { width:100%; padding:6px; border-radius:6px; border:1px solid #ccc; }
-    .footer { margin-top:24px; text-align:center; font-size:13px; color:#666; }
-    .sheep { position:fixed; bottom:40px; width:120px; opacity:0.9; pointer-events:none; z-index:1; }
-    .sheep.left { left:10px; }
-    .sheep.right { right:10px; }
-    @media(max-width:768px){ .grid{grid-template-columns:repeat(2,1fr);} .sheep{width:80px;bottom:20px;} }
-    #downloadPdf { padding:10px 20px; font-size:16px; border-radius:20px; border:none; background:#ff6fa5; color:#fff; cursor:pointer; margin:20px auto; display:block; }
+    .name-input { width:100%; padding:6px; border-radius:6px; border:1px solid #ccc; flex-shrink:0; }
+    #downloadImage {
+      padding:10px 20px;
+      font-size:16px;
+      border-radius:20px;
+      border:none;
+      background:#ff6fa5;
+      color:#fff;
+      cursor:pointer;
+      margin:20px auto;
+      display:block;
+    }
+    @media(max-width:768px){ .grid{grid-template-columns:repeat(2,1fr);} }
   </style>
 </head>
 <body>
-  <img src="sheep-left.png" class="sheep left">
-  <img src="sheep-right.png" class="sheep right">
-
-  <div class="container">
-    <div class="logo-wrap">
-      <img src="homi-logo.png" alt="HOMI Logo">
-    </div>
+  <div class="container" id="container">
     <h1>HOMI 烤羊派对破冰游戏</h1>
-    <div class="instructions">
-      微信打开 → 填名字 → 电脑可点击“一键生成 PDF” → 发群
-    </div>
     <div class="grid" id="grid"></div>
-    <button id="downloadPdf">📄 一键生成 PDF</button>
-    <div class="footer">适用于团队破冰 / 培训 / All Hands 活动</div>
+    <button id="downloadImage">📷 一键生成图片</button>
   </div>
 
-  <script src="html2pdf.bundle.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script>
-    // 破冰格子
     const questions = [
       "找一个和你穿同颜色衣服的异性",
       "会2种以上乐器的人",
@@ -75,33 +73,50 @@
 
     const grid = document.getElementById("grid");
     const usedNames = new Set();
+
+    // 生成格子
     questions.forEach(q=>{
-      const cell = document.createElement("div");
-      cell.className="cell";
-      const question=document.createElement("div");
-      question.className="question"; question.textContent=q;
-      const input=document.createElement("input");
-      input.className="name-input"; input.placeholder="填写名字";
-      input.onchange=()=>{
-        const name=input.value.trim();
-        if(!name){cell.classList.remove("done"); return;}
-        if(usedNames.has(name)){alert("名字重复啦"); input.value=""; return;}
-        usedNames.add(name); cell.classList.add("done");
+      const cell = document.createElement("div"); cell.className="cell";
+      const question = document.createElement("div"); question.className="question"; question.textContent = q;
+      const input = document.createElement("input"); input.className="name-input"; input.placeholder="填写名字";
+      input.onchange = ()=>{
+        const name = input.value.trim();
+        if(!name){
+          cell.classList.remove("done");
+          usedNames.delete(name);
+          return;
+        }
+        if(usedNames.has(name)){
+          alert("名字重复");
+          input.value="";
+          return;
+        }
+        usedNames.add(name);
+        cell.classList.add("done");
       };
-      cell.appendChild(question); cell.appendChild(input); grid.appendChild(cell);
+      cell.appendChild(question);
+      cell.appendChild(input);
+      grid.appendChild(cell);
     });
 
-    // PDF 生成
-    document.getElementById("downloadPdf").onclick = () => {
-      const element = document.querySelector(".container");
-      const opt = {
-        margin:0.5,
-        filename:"HOMI_烤羊派对破冰游戏.pdf",
-        image:{type:"jpeg",quality:0.98},
-        html2canvas:{scale:2,useCORS:true},
-        jsPDF:{unit:"in",format:"a4",orientation:"portrait"}
-      };
-      html2pdf().set(opt).from(element).save();
+    // 一键生成完整长图
+    document.getElementById("downloadImage").onclick = async ()=>{
+      const container = document.getElementById("container");
+      html2canvas(container, {
+        scale:1,       // scale 调小，避免微信截断
+        useCORS:true,
+        scrollY:-window.scrollY // 避免截取滚动条
+      }).then(canvas=>{
+        const imgData = canvas.toDataURL("image/png");
+        const link = document.createElement("a");
+        link.href = imgData;
+        link.download = "HOMI_烤羊派对破冰游戏.png";
+        link.click();
+        alert("图片生成成功！长按保存或分享到微信群");
+      }).catch(err=>{
+        console.error(err);
+        alert("生成图片失败，请在电脑或支持浏览器重试");
+      });
     };
   </script>
 </body>
